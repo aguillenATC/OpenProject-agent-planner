@@ -4,6 +4,9 @@ import { OpenAI } from "openai";
 const openai = new OpenAI({
   baseURL: process.env.OLLAMA_BASE_URL || "http://localhost:11434/v1",
   apiKey: "ollama", // Required by SDK but ignored by Ollama
+  defaultHeaders: process.env.OLLAMA_CLIENT && process.env.OLLAMA_PWD
+    ? { 'Authorization': `Basic ${Buffer.from(`${process.env.OLLAMA_CLIENT}:${process.env.OLLAMA_PWD}`).toString('base64')}` }
+    : undefined
 });
 
 export async function POST(request: Request) {
@@ -46,6 +49,10 @@ You MUST output a valid JSON object matching the following structure EXACTLY:
 }
 Do not include any other text, markdown blocks, or explanation. ONLY output the raw JSON.`;
 
+    console.log("Generating plan with model:", modelName);
+    console.log("Base URL:", process.env.OLLAMA_BASE_URL);
+    console.log("Auth configured:", !!(process.env.OLLAMA_CLIENT && process.env.OLLAMA_PWD));
+
     const completion = await openai.chat.completions.create({
       model: modelName,
       messages: [
@@ -57,6 +64,8 @@ Do not include any other text, markdown blocks, or explanation. ONLY output the 
     });
 
     const responseContent = completion.choices[0].message.content;
+
+    console.log("Response from the model", responseContent);
 
     if (!responseContent) {
       throw new Error("Empty response from LLM");
