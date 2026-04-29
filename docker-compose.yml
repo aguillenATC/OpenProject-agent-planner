@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount the current directory to /app in the container so code changes are reflected immediately
+      - ./:/app
+      # Create an anonymous volume for node_modules so that the container's installed dependencies
+      # are preserved and not overwritten by the host machine's node_modules folder.
+      - /app/node_modules
+      # Create an anonymous volume for the Next.js build cache to prevent conflicts with the host
+      - /app/.next
+    environment:
+      # Load variables from local env file if needed
+      - NODE_ENV=development
+    env_file:
+      - .env.local
